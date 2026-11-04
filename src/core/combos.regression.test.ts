@@ -37,7 +37,34 @@ describe('regressões de combos', () => {
       card({ name: 'metapod', types: ['bug'], bst: 205 }),
     ]);
     expect(r.type).toBe('twoPair');
-    expect(scoreHand(r).score).toBe(324); // (20 + 53 + 39 + 30 + 20) × 2
+    expect(scoreHand(r).score).toBe(314); // (15 + 53 + 39 + 30 + 20) × 2
+  });
+});
+
+describe('Quadra por tipo', () => {
+  it('4 cartas com Veneno em comum (Ivysaur, Haunter, Bulbasaur, Gastly) é Quadra', () => {
+    const r = evaluateHand([
+      card({ name: 'ivysaur', types: ['grass', 'poison'] }),
+      card({ name: 'haunter', types: ['ghost', 'poison'] }),
+      card({ name: 'bulbasaur', types: ['grass', 'poison'] }),
+      card({ name: 'gastly', types: ['ghost', 'poison'] }),
+    ]);
+    expect(r.type).toBe('fourOfAKind');
+    expect(r.scoringCards).toHaveLength(4);
+  });
+
+  it('com a 5ª carta do mesmo tipo vira Mesmo Tipo, que vale mais que a Quadra', () => {
+    const cards = [
+      card({ name: 'ivysaur', types: ['grass', 'poison'] }),
+      card({ name: 'haunter', types: ['ghost', 'poison'] }),
+      card({ name: 'bulbasaur', types: ['grass', 'poison'] }),
+      card({ name: 'gastly', types: ['ghost', 'poison'] }),
+      card({ name: 'gengar', types: ['ghost', 'poison'] }),
+    ];
+    const five = evaluateHand(cards);
+    const four = evaluateHand(cards.slice(0, 4));
+    expect(five.type).toBe('flush');
+    expect(scoreHand(five).score).toBeGreaterThan(scoreHand(four).score);
   });
 });
 

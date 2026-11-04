@@ -3,8 +3,9 @@
 // Regras (naipe = tipo; tipo duplo casa com QUALQUER um dos tipos):
 //   - Par ...................... 2 cartas mesma espécie OU mesmo tipo
 //   - Trinca ................... 3 cartas mesma espécie OU mesmo tipo
+//   - Quadra ................... 4 cartas mesma espécie OU mesmo tipo
 //   - Dois Pares ............... 2 pares disjuntos (a melhor combinação, não a gulosa)
-//   - Mesmo Tipo (Flush) ....... 5 cartas que compartilham um tipo
+//   - Mesmo Tipo (Flush) ....... 5 cartas que compartilham um tipo (a mão mais forte)
 //   - Full House ............... Trinca + Par disjunto (espécie OU tipo). Se as 5
 //                                cartas têm um tipo em comum, conta como Mesmo Tipo,
 //                                a menos que a trinca seja da mesma espécie.
@@ -21,20 +22,24 @@ const RANK: Record<HandType, number> = {
   twoPair: 2,
   threeOfAKind: 3,
   evolutionStraight: 4,
-  flush: 5,
-  fullHouse: 6,
-  fourOfAKind: 7,
+  fullHouse: 5,
+  fourOfAKind: 6,
+  // 5 cartas de um tipo contêm uma Quadra por tipo — então precisa valer mais que ela
+  flush: 7,
 };
 
+// Valores calibrados por simulação (jogador guloso, 600 partidas): as fichas das
+// cartas já pesam muito, então combos fáceis por tipo (Dois Pares, Full House,
+// Quadra) têm base contida e a Sequência Evolutiva, mais rara, vale mais.
 const BASE: Record<HandType, { chips: number; mult: number }> = {
   highCard: { chips: 5, mult: 1 },
   pair: { chips: 10, mult: 2 },
-  twoPair: { chips: 20, mult: 2 },
-  threeOfAKind: { chips: 20, mult: 3 },
-  evolutionStraight: { chips: 30, mult: 4 },
-  flush: { chips: 35, mult: 4 },
-  fullHouse: { chips: 40, mult: 4 },
-  fourOfAKind: { chips: 60, mult: 7 },
+  twoPair: { chips: 15, mult: 2 },
+  threeOfAKind: { chips: 25, mult: 3 },
+  evolutionStraight: { chips: 40, mult: 4 },
+  fullHouse: { chips: 30, mult: 3 },
+  fourOfAKind: { chips: 45, mult: 4 },
+  flush: { chips: 70, mult: 6 },
 };
 
 const LABEL: Record<HandType, string> = {
@@ -233,8 +238,8 @@ export function evaluateHand(selected: Card[]): HandResult {
 
   const candidates: HandResult[] = [];
 
-  // Quadra = 4 da MESMA ESPÉCIE (eixo "valor"), distinta do Flush (eixo "tipo").
-  const quadra = bestSameSpecies(selected, 4);
+  // Quadra = 4 da mesma espécie OU com um tipo em comum.
+  const quadra = bestGroup(selected, 4);
   if (quadra) candidates.push(build('fourOfAKind', quadra));
 
   const full = fullHouse(selected);

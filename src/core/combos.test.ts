@@ -102,7 +102,7 @@ describe('evaluateHand', () => {
       card({ name: 'rattata', id: 19, types: ['normal'] }),
       card({ name: 'rattata', id: 19, types: ['normal'] }),
       card({ name: 'rattata', id: 19, types: ['normal'] }),
-      card({ name: 'pidgey', id: 16, types: ['normal', 'flying'] }),
+      card({ name: 'gastly', id: 92, types: ['ghost', 'poison'] }),
     ]);
     expect(r.type).toBe('fourOfAKind');
     expect(r.scoringCards).toHaveLength(4);

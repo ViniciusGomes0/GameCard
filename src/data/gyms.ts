@@ -1,4 +1,5 @@
-// Ginásios (fases). MVP: um único ginásio jogável.
+// Ginásios (fases). Metas calibradas por simulação: o 1º ginásio se vence só com o
+// baralho inicial; do 2º em diante é preciso comprar itens na loja.
 
 import type { GymConfig } from '../core/types';
 
@@ -7,7 +8,7 @@ export const GYMS: GymConfig[] = [
     id: 'pewter',
     name: 'Ginásio de Pewter',
     leader: 'Brock',
-    targetScore: 600,
+    targetScore: 1000,
     hands: 4,
     discards: 3,
     reward: 5,
@@ -16,7 +17,7 @@ export const GYMS: GymConfig[] = [
     id: 'cerulean',
     name: 'Ginásio de Cerulean',
     leader: 'Misty',
-    targetScore: 1000,
+    targetScore: 3000,
     hands: 4,
     discards: 3,
     reward: 6,
@@ -25,7 +26,7 @@ export const GYMS: GymConfig[] = [
     id: 'vermilion',
     name: 'Ginásio de Vermilion',
     leader: 'Lt. Surge',
-    targetScore: 1600,
+    targetScore: 5500,
     hands: 4,
     discards: 4,
     reward: 7,
