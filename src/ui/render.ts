@@ -3,6 +3,7 @@
 
 import type { Card, GameState, ScoreResult, TrainerItem } from '../core/types';
 import type { RunPhase, Reward } from '../state/runState';
+import { ROUND_SIZE } from '../data/gyms';
 import type { Shop } from '../data/shop';
 import { cardChips } from '../core/scoring';
 import { MAX_SELECTED } from '../state/gameState';
@@ -694,9 +695,12 @@ export class GameUI {
     let body = '';
     if (phase === 'reward' && vm.reward) {
       const r = vm.reward;
+      const isRoundEnd = (vm.gymIndex + 1) % ROUND_SIZE === 0;
+      const isLastGym = vm.gymIndex >= vm.gymCount - 1;
+      const nextLabel = isLastGym ? 'Ver resultado' : isRoundEnd ? 'Receber $' + r.total + ' → Loja' : 'Receber $' + r.total + ' → Próximo';
       body = `
         <div class="panel overlay-card won">
-          <div class="ov-title">Ginásio vencido!</div>
+          <div class="ov-title">${isRoundEnd && !isLastGym ? 'Round completo!' : 'Ginásio vencido!'}</div>
           <div class="inner ov-body">
             <div class="ov-score"><span class="star">✦</span>${fmt(state.score)}</div>
             <div class="reward-rows">
@@ -705,7 +709,7 @@ export class GameUI {
               <div class="rrow" style="--d:0.5s"><span>Juros</span><b>+$${r.interest}</b></div>
             </div>
           </div>
-          <button class="btn orange wide" id="ov-collect">Receber $${r.total}</button>
+          <button class="btn orange wide" id="ov-collect">${nextLabel}</button>
         </div>`;
     } else if (phase === 'shop' && vm.shop) {
       const offers = vm.shop.offers

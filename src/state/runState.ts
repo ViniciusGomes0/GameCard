@@ -5,7 +5,7 @@ import type { Card, GameState, ScoreResult, TrainerItem } from '../core/types';
 import type { RNG } from '../core/deck';
 import { createGame, discardSelected as discardGame, playSelected as playGame, toggleSelect as toggleGame } from './gameState';
 import { buildStarterDeck } from '../data/pokemon';
-import { GYMS } from '../data/gyms';
+import { GYMS, ROUND_SIZE } from '../data/gyms';
 import { rollShop, type Offer, type Shop } from '../data/shop';
 
 export type RunPhase = 'playing' | 'reward' | 'shop' | 'runWon' | 'lost';
@@ -89,16 +89,28 @@ export function discardSelected(run: RunState): RunState {
   return { ...run, game: discardGame(run.game) };
 }
 
-/** Coleta a recompensa e abre a loja (reabastecida, reroll resetado). */
+/** Coleta a recompensa. Abre a loja só no fim de cada round (a cada ROUND_SIZE ginásios). */
 export function collectReward(run: RunState): RunState {
   if (run.phase !== 'reward' || !run.lastReward) return run;
-  // último ginásio: não há fase seguinte para usar compras — vai direto ao título
+  const money = run.money + run.lastReward.total;
   if (run.gymIndex >= GYMS.length - 1) {
-    return { ...run, money: run.money + run.lastReward.total, phase: 'runWon' };
+    return { ...run, money, phase: 'runWon' };
+  }
+  const isRoundEnd = (run.gymIndex + 1) % ROUND_SIZE === 0;
+  if (!isRoundEnd) {
+    const gymIndex = run.gymIndex + 1;
+    return {
+      ...run,
+      money,
+      gymIndex,
+      game: createGame(GYMS[gymIndex], run.collection, run.rng, run.items),
+      lastReward: null,
+      phase: 'playing',
+    };
   }
   return {
     ...run,
-    money: run.money + run.lastReward.total,
+    money,
     shop: rollShop(run.items.map((i) => i.id), run.gymIndex, run.rng),
     phase: 'shop',
     rerollCost: REROLL_BASE,
