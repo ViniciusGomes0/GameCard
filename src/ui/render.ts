@@ -409,14 +409,20 @@ export class GameUI {
     const boss = state.gym.boss;
     const bossImg = q<HTMLImageElement>(this.root, '#boss-img');
     const bossFallback = q(this.root, '#gym-initial');
-    if (boss) {
-      if (bossImg.src !== boss.sprite) bossImg.src = boss.sprite;
-      bossImg.style.display = '';
-      bossFallback.style.display = 'none';
-    } else {
+    const showFallback = (): void => {
       bossImg.style.display = 'none';
       bossFallback.style.display = '';
       bossFallback.textContent = state.gym.leader.charAt(0);
+    };
+    if (boss) {
+      if (bossImg.src !== boss.sprite) {
+        bossImg.onerror = showFallback;
+        bossImg.src = boss.sprite;
+      }
+      bossImg.style.display = '';
+      bossFallback.style.display = 'none';
+    } else {
+      showFallback();
     }
 
     const hpPct = Math.max(0, Math.min(1, 1 - state.score / state.gym.targetScore));
