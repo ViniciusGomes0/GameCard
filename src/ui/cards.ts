@@ -13,6 +13,14 @@ function cap(s: string): string {
 }
 
 /** Mola amortecida (semi-implícita). Levemente sub-amortecida → overshoot "elástico". */
+/** Intensidade do movimento "decorativo" (balanço, flutuação, tremida). 0 = parado, 1 = normal. */
+let motionScale = 1;
+
+/** Usado pelo menu de configurações. Não afeta as molas de posição (as cartas continuam indo aos alvos). */
+export function setMotionScale(scale: number): void {
+  motionScale = Math.max(0, Math.min(1, Number.isFinite(scale) ? scale : 1));
+}
+
 function spring(x: number, v: number, target: number, k: number, d: number, dt: number): [number, number] {
   const a = (target - x) * k - v * d;
   const nv = v + a * dt;
@@ -162,14 +170,15 @@ export class CardSprite {
     if (this.juice < 0.002) this.juice = 0;
 
     // balanço por velocidade horizontal (a carta "arrasta" no ar)
-    const sway = Math.max(-16, Math.min(16, this.vx * 0.018));
+    const m = motionScale;
+    const sway = Math.max(-16, Math.min(16, this.vx * 0.018)) * m;
     // flutuação ociosa
-    const idle = this.zone !== 'gone' && !this.hovered && this.delay <= 0 ? 1 : 0;
+    const idle = this.zone !== 'gone' && !this.hovered && this.delay <= 0 ? m : 0;
     const floatY = idle * Math.sin(t * 1.7 + this.phase) * 2.4;
     const floatR = idle * Math.sin(t * 1.15 + this.phase) * 0.9;
     // juice: escala + tremida rápida
     const jScale = this.juice * 0.24;
-    const jRot = Math.sin(t * 42 + this.phase) * this.juice * 8;
+    const jRot = Math.sin(t * 42 + this.phase) * this.juice * 8 * m;
 
     const rot = this.r + sway + floatR + jRot;
     const scale = this.s * (1 + jScale);

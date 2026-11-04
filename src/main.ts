@@ -19,6 +19,7 @@ import { startBackground, TITLE } from './ui/background';
 import { TitleScreen } from './ui/title';
 import { SPECIES } from './data/pokemon';
 import { loadProgress, recordResult } from './state/save';
+import { initSettings } from './ui/settings';
 
 const root = document.querySelector<HTMLDivElement>('#app');
 if (!root) throw new Error('#app não encontrado');
@@ -120,3 +121,6 @@ new TitleScreen(root, {
     sync();
   },
 });
+
+// Menu de configurações (engrenagem): gráficos e skins de baralho.
+initSettings();
