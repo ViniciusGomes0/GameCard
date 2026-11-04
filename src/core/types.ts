@@ -99,6 +99,12 @@ export interface ScoreResult {
   score: number;
 }
 
+/** Pokémon boss de um ginásio. */
+export interface BossConfig {
+  name: string;
+  sprite: string;
+}
+
 /** Configuração de um ginásio (fase). */
 export interface GymConfig {
   id: string;
@@ -111,6 +117,8 @@ export interface GymConfig {
   discards: number;
   /** Dinheiro base ganho ao vencer este ginásio. */
   reward: number;
+  /** Pokémon boss: HP = targetScore. */
+  boss?: BossConfig;
 }
 
 export type GameStatus = 'playing' | 'won' | 'lost';

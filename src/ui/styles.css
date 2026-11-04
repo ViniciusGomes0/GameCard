@@ -132,6 +132,43 @@ canvas.bg {
 .blind-goal { flex: 1; text-align: center; }
 .goal-num { font-size: 34px; font-weight: 700; color: var(--red); line-height: 1.1; }
 
+/* ---- boss sprite na ficha */
+.boss-chip { position: relative; overflow: hidden; }
+.boss-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: auto;
+  display: block;
+  padding: 4px;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
+}
+.boss-fallback { position: absolute; inset: 0; display: grid; place-items: center; }
+
+/* ---- barra de HP do boss */
+.boss-hp-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.boss-hp-lbl { font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; }
+.boss-hp-track {
+  flex: 1;
+  height: 10px;
+  background: rgba(0,0,0,0.5);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 0 rgba(0,0,0,0.4);
+}
+.boss-hp-fill {
+  height: 100%;
+  width: calc(var(--hp, 1) * 100%);
+  border-radius: 6px;
+  background: color-mix(in srgb, #22dd44 calc(var(--hp, 1) * 100%), #dd2222);
+  transition: width 0.4s ease, background 0.4s ease;
+}
+
 /* ---- pontos da rodada */
 .round { display: flex; align-items: center; gap: 10px; }
 .round .lbl { flex: none; }

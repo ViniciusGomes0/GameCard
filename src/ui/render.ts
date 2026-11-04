@@ -114,9 +114,15 @@ export class GameUI {
           <div class="panel blind">
             <div class="blind-title" id="gym-name"></div>
             <div class="blind-body">
-              <div class="blind-chip"><span id="gym-initial"></span></div>
+              <div class="blind-chip boss-chip">
+                <img class="boss-img" id="boss-img" src="" alt="" draggable="false" />
+                <span class="boss-fallback" id="gym-initial"></span>
+              </div>
               <div class="blind-goal inner">
-                <div class="lbl">Pontue ao menos</div>
+                <div class="boss-hp-row">
+                  <span class="boss-hp-lbl">HP</span>
+                  <div class="boss-hp-track"><div class="boss-hp-fill" id="boss-hp-fill" style="--hp:1"></div></div>
+                </div>
                 <div class="goal-num"><span class="star">✦</span><span id="goal"></span></div>
                 <div class="lbl small">Líder: <b id="gym-leader"></b></div>
               </div>
@@ -398,8 +404,23 @@ export class GameUI {
     this.root.style.setProperty('--gym', gc[0]);
     this.root.style.setProperty('--gym-d', gc[1]);
     this.setText('gym-name', state.gym.name);
-    this.setText('gym-initial', state.gym.leader.charAt(0));
     this.setText('gym-leader', state.gym.leader);
+
+    const boss = state.gym.boss;
+    const bossImg = q<HTMLImageElement>(this.root, '#boss-img');
+    const bossFallback = q(this.root, '#gym-initial');
+    if (boss) {
+      if (bossImg.src !== boss.sprite) bossImg.src = boss.sprite;
+      bossImg.style.display = '';
+      bossFallback.style.display = 'none';
+    } else {
+      bossImg.style.display = 'none';
+      bossFallback.style.display = '';
+      bossFallback.textContent = state.gym.leader.charAt(0);
+    }
+
+    const hpPct = Math.max(0, Math.min(1, 1 - state.score / state.gym.targetScore));
+    q<HTMLElement>(this.root, '#boss-hp-fill').style.setProperty('--hp', String(hpPct));
     this.setText('goal', fmt(state.gym.targetScore));
     this.setText('hands-left', String(state.handsLeft), true);
     this.setText('discards-left', String(state.discardsLeft), true);

@@ -3,6 +3,8 @@
 
 import type { GymConfig } from '../core/types';
 
+const ART = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork';
+
 export const GYMS: GymConfig[] = [
   {
     id: 'pewter',
@@ -12,6 +14,7 @@ export const GYMS: GymConfig[] = [
     hands: 4,
     discards: 3,
     reward: 5,
+    boss: { name: 'Onix', sprite: `${ART}/95.png` },
   },
   {
     id: 'cerulean',
@@ -21,6 +24,7 @@ export const GYMS: GymConfig[] = [
     hands: 4,
     discards: 3,
     reward: 6,
+    boss: { name: 'Starmie', sprite: `${ART}/121.png` },
   },
   {
     id: 'vermilion',
@@ -30,6 +34,7 @@ export const GYMS: GymConfig[] = [
     hands: 4,
     discards: 4,
     reward: 7,
+    boss: { name: 'Raichu', sprite: `${ART}/26.png` },
   },
 ];
 
