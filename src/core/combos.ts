@@ -3,7 +3,11 @@
 // Regras (naipe = tipo; tipo duplo casa com QUALQUER um dos tipos):
 //   - Par ...................... 2 cartas mesma espécie OU mesmo tipo
 //   - Trinca ................... 3 cartas mesma espécie OU mesmo tipo
+//   - Dois Pares ............... 2 pares disjuntos (a melhor combinação, não a gulosa)
 //   - Mesmo Tipo (Flush) ....... 5 cartas que compartilham um tipo
+//   - Full House ............... Trinca + Par disjunto (espécie OU tipo). Se as 5
+//                                cartas têm um tipo em comum, conta como Mesmo Tipo,
+//                                a menos que a trinca seja da mesma espécie.
 //   - Sequência Evolutiva ...... 3 cartas de uma linha evolutiva (estágios 1-2-3)
 //   - Carta Alta ............... nenhuma combinação (pontua a maior carta)
 
@@ -105,25 +109,79 @@ function without(cards: Card[], remove: Card[]): Card[] {
   return cards.filter((c) => !uids.has(c.uid));
 }
 
-/** Dois Pares: um par + outro par disjunto (4 cartas). */
-function twoPair(cards: Card[]): Card[] | null {
-  const first = bestGroup(cards, 2);
-  if (!first) return null;
-  const second = bestGroup(without(cards, first), 2);
-  if (!second) return null;
-  return [...first, ...second];
+/** Todas as combinações de `k` cartas (a mão tem no máximo 5, então é barato). */
+function combinations(cards: Card[], k: number): Card[][] {
+  const out: Card[][] = [];
+  const pick: Card[] = [];
+  const rec = (start: number): void => {
+    if (pick.length === k) {
+      out.push(pick.slice());
+      return;
+    }
+    for (let i = start; i < cards.length; i++) {
+      pick.push(cards[i]);
+      rec(i + 1);
+      pick.pop();
+    }
+  };
+  rec(0);
+  return out;
+}
+
+function sameSpecies(cards: Card[]): boolean {
+  return cards.every((c) => c.species.id === cards[0].species.id);
+}
+
+function sharedType(cards: Card[]): boolean {
+  return cards[0].species.types.some((t) => cards.every((c) => c.species.types.includes(t)));
+}
+
+/** Um grupo (par/trinca) vale se todas as cartas são da mesma espécie OU têm um tipo em comum. */
+function isGroup(cards: Card[]): boolean {
+  return sameSpecies(cards) || sharedType(cards);
+}
+
+/** Melhor de várias opções pelo total de fichas. */
+function bestBy(options: Card[][]): Card[] | null {
+  let best: Card[] | null = null;
+  for (const o of options) if (!best || sumChips(o) > sumChips(best)) best = o;
+  return best;
 }
 
 /**
- * Full House: uma trinca da MESMA ESPÉCIE + um par disjunto (5 cartas).
- * A trinca é por espécie (eixo "valor") para não colidir com o Flush (eixo "tipo").
+ * Dois Pares: dois pares disjuntos (4 cartas). Testa todas as divisões
+ * possíveis — escolher primeiro o par de mais fichas pode impedir o segundo.
+ */
+function twoPair(cards: Card[]): Card[] | null {
+  const options: Card[][] = [];
+  for (const first of combinations(cards, 2)) {
+    if (!isGroup(first)) continue;
+    for (const second of combinations(without(cards, first), 2)) {
+      if (isGroup(second)) options.push([...first, ...second]);
+    }
+  }
+  return bestBy(options);
+}
+
+/**
+ * Full House: trinca + par disjunto (5 cartas), cada um por espécie OU tipo.
+ * Ex.: 3 Voadores + 2 Terrestres. Se as 5 cartas compartilham um tipo, isso é
+ * Mesmo Tipo — então a trinca por tipo não vale ali (só a trinca por espécie).
  */
 function fullHouse(cards: Card[]): Card[] | null {
-  const trip = bestSameSpecies(cards, 3);
-  if (!trip) return null;
-  const pair = bestGroup(without(cards, trip), 2);
-  if (!pair) return null;
-  return [...trip, ...pair];
+  if (cards.length < 5) return null;
+  const options: Card[][] = [];
+  for (const trip of combinations(cards, 3)) {
+    const bySpecies = sameSpecies(trip);
+    if (!bySpecies && !sharedType(trip)) continue;
+    for (const pair of combinations(without(cards, trip), 2)) {
+      if (!isGroup(pair)) continue;
+      const five = [...trip, ...pair];
+      if (!bySpecies && sharedType(five)) continue;
+      options.push(five);
+    }
+  }
+  return bestBy(options);
 }
 
 /** 3 cartas de uma mesma família cobrindo estágios 1-2-3. */

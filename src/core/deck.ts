@@ -18,6 +18,17 @@ export function mulberry32(seed: number): RNG {
 
 let uidCounter = 0;
 
+/**
+ * Garante que as próximas cartas criadas não reaproveitem uids já em uso
+ * (usado ao restaurar uma run salva).
+ */
+export function reserveUids(uids: readonly string[]): void {
+  for (const u of uids) {
+    const n = Number(/^c(\d+)$/.exec(u)?.[1]);
+    if (Number.isFinite(n) && n > uidCounter) uidCounter = n;
+  }
+}
+
 /** Cria uma carta (instância jogável) de uma espécie. */
 export function makeCard(species: PokemonSpecies): Card {
   uidCounter += 1;

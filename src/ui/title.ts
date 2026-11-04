@@ -32,7 +32,10 @@ export interface TitleOptions {
   species: readonly PokemonSpecies[];
   bestScore: number;
   background: Background;
-  onPlay: () => void;
+  /** Run salva para continuar (null = não há). */
+  resume?: { gym: number; gymCount: number; money: number } | null;
+  /** 'continue' retoma a run salva; 'new' começa do zero. */
+  onPlay: (mode: 'continue' | 'new') => void;
 }
 
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
@@ -61,6 +64,7 @@ export class TitleScreen {
   private heroTilt = { x: 0, y: 0, tx: 0, ty: 0 };
   private mouse = { x: 0.5, y: 0.5, px: -9999, py: -9999 };
   private leaving = false;
+  private mode: 'continue' | 'new' = 'continue';
   private raf = 0;
   private last = 0;
   private t = 0;
@@ -86,7 +90,8 @@ export class TitleScreen {
       </div>
       <div class="t-bar">
         <div class="t-best"><span>Recorde</span><b>${Math.round(opts.bestScore).toLocaleString('pt-BR')}</b></div>
-        <button class="btn t-play" type="button"><span class="t-play-ball"></span><span>JOGAR</span></button>
+        <button class="btn t-play" type="button"><span class="t-play-ball"></span><span>${opts.resume ? 'CONTINUAR' : 'JOGAR'}</span></button>
+        ${opts.resume ? `<div class="t-resume"><span>Ginásio ${opts.resume.gym}/${opts.resume.gymCount} · $${opts.resume.money}</span><button class="btn small t-new" type="button">Nova run</button></div>` : ''}
         <div class="t-hint">ENTER</div>
       </div>
       <div class="t-ver">v0.1 · Pokélatro</div>`;
@@ -102,6 +107,10 @@ export class TitleScreen {
 
     const play = el.querySelector('.t-play') as HTMLButtonElement;
     play.addEventListener('click', () => this.start());
+    el.querySelector('.t-new')?.addEventListener('click', () => {
+      this.mode = 'new';
+      this.start();
+    });
     play.focus({ preventScroll: true });
 
     this.hero.addEventListener('pointermove', (e) => {
@@ -215,7 +224,7 @@ export class TitleScreen {
   private readonly onDown = (e: PointerEvent): void => {
     if (this.leaving) return;
     const target = e.target as HTMLElement;
-    if (target.closest('.t-play, .t-hero')) return;
+    if (target.closest('.t-play, .t-hero, .t-new')) return;
     // pokébola mais próxima do clique dá um pulo e gira
     let best: Floater | null = null;
     let bestD = Infinity;
@@ -398,6 +407,6 @@ export class TitleScreen {
     window.removeEventListener('keydown', this.onKey);
     window.removeEventListener('resize', this.onResize);
     this.el.remove();
-    this.opts.onPlay();
+    this.opts.onPlay(this.opts.resume ? this.mode : 'new');
   }
 }

@@ -70,6 +70,11 @@ function fmt(n: number): string {
   return Math.round(n).toLocaleString('pt-BR');
 }
 
+/** Multiplicador pode ser decimal (×1.5): mostra até 1 casa para a conta fechar. */
+function fmtMult(n: number): string {
+  return (Math.round(n * 10) / 10).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+}
+
 export class GameUI {
   private readonly root: HTMLElement;
   private readonly h: UIHandlers;
@@ -179,6 +184,14 @@ export class GameUI {
     this.handZone = q(root, '#hand-zone');
     this.deckZone = q(root, '#deck-zone');
 
+    // toque num item mostra/esconde a descrição (no celular não há hover)
+    q(root, '#items').addEventListener('click', (e) => {
+      const item = (e.target as HTMLElement).closest<HTMLElement>('.item');
+      if (!item) return;
+      const wasOpen = item.classList.contains('open');
+      root.querySelectorAll('#items .item.open').forEach((el) => el.classList.remove('open'));
+      item.classList.toggle('open', !wasOpen);
+    });
     q(root, '#btn-play').addEventListener('click', () => this.h.onPlay());
     q(root, '#btn-discard').addEventListener('click', () => this.h.onDiscard());
     root.querySelectorAll<HTMLButtonElement>('[data-sort]').forEach((b) =>
@@ -415,7 +428,7 @@ export class GameUI {
     if (preview) {
       this.setText('hand-label', preview.hand.label, true);
       this.setText('chips-box', fmt(preview.chips), true);
-      this.setText('mult-box', fmt(preview.mult), true);
+      this.setText('mult-box', fmtMult(preview.mult), true);
     } else {
       this.setText('hand-label', ' ');
       this.setText('chips-box', '0');
@@ -448,6 +461,8 @@ export class GameUI {
     el.style.top = `${y}px`;
     this.fx.appendChild(el);
     el.addEventListener('animationend', () => el.remove());
+    // sem animação (movimento reduzido) o animationend nunca dispara
+    window.setTimeout(() => el.remove(), 1100);
   }
 
   private shake(strength: 'soft' | 'hard' = 'soft'): void {
@@ -528,7 +543,7 @@ export class GameUI {
     let mult = result.hand.baseMult;
     label.textContent = result.hand.label;
     chipsEl.textContent = fmt(chips);
-    multEl.textContent = fmt(mult);
+    multEl.textContent = fmtMult(mult);
     retrigger(label, 'pulse');
     retrigger(chipsEl, 'pulse');
     retrigger(multEl, 'pulse');
@@ -567,9 +582,9 @@ export class GameUI {
       await wait(380);
     }
     if (mult !== result.mult) {
-      this.popText(pz.x + pz.w / 2, pz.y + 20, `×${fmt(result.mult)} mult`, 'mult');
+      this.popText(pz.x + pz.w / 2, pz.y + 20, `×${fmtMult(result.mult)} mult`, 'mult');
       mult = result.mult;
-      multEl.textContent = fmt(mult);
+      multEl.textContent = fmtMult(mult);
       retrigger(multEl, 'pulse');
       await wait(380);
     }
@@ -640,6 +655,8 @@ export class GameUI {
       return;
     }
     const samePhase = host.dataset.phase === phase && host.innerHTML !== '';
+    // saiu da partida: limpa textos de bônus que ainda estejam na mesa
+    if (!samePhase) this.fx.replaceChildren();
     // na loja, só re-renderiza o conteúdo (sem repetir a animação de entrada)
     if (samePhase && phase !== 'shop') return;
     if (samePhase && prev && prev.shop === vm.shop && prev.money === vm.money && prev.items === vm.items) return;

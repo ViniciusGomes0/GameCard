@@ -619,8 +619,41 @@ canvas.bg {
   .stats { grid-column: span 2; grid-template-columns: repeat(3, 1fr); gap: 6px; }
   .stat.wide { grid-column: auto; display: block; }
   .num { font-size: 20px; }
-  .items-row { display: none; }
-  .table { padding: 8px 16px 12px; }
+  /* itens: faixa compacta de ícones; tocar mostra a descrição */
+  .items-row { gap: 8px; align-items: center; min-width: 0; }
+  .items-slots { min-width: 0; height: auto; min-height: 46px; max-width: none; padding: 4px 8px; gap: 6px; overflow-x: auto; }
+  .items-slots .item {
+    position: relative;
+    width: auto;
+    height: 40px;
+    padding: 3px 8px 3px 4px;
+    flex-direction: row;
+    align-items: center;
+    animation: none;
+    cursor: pointer;
+  }
+  .items-slots .item-top { display: flex; align-items: center; gap: 4px; }
+  .items-slots .item-icon { width: 30px; height: 30px; }
+  .items-slots .item-name { font-size: 12px; white-space: nowrap; }
+  .items-slots .item-desc { display: none; }
+  .items-slots .item.open .item-desc {
+    display: block;
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    top: auto;
+    margin-top: 48px;
+    z-index: 40;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--card-ink);
+    font-size: 14px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  }
+  .items-slots .items-empty { font-size: 13px; }
+  .items-count { font-size: 14px; padding-top: 0; }
+  .table { padding: 8px 16px 12px; grid-template-columns: minmax(0, 1fr); }
   .btn { font-size: 16px; min-width: 0; padding: 10px 14px; }
   .btn.small { font-size: 13px; padding: 5px 8px; }
   .deck-zone { right: 16px; bottom: 12px; }
@@ -928,6 +961,17 @@ canvas.bg {
   50% { filter: brightness(1.12); }
 }
 .t-hint { font-size: 13px; color: var(--muted); padding: 4px 8px; border: 2px solid #2c4350; border-radius: 8px; }
+/* run salva: progresso + opção de começar de novo */
+.t-resume {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.t-resume .t-new { font-size: 15px; padding: 7px 12px; background: #3a4a55; box-shadow: 0 4px 0 #222d34; }
 .t-ver {
   position: absolute;
   top: 12px;
@@ -952,6 +996,8 @@ canvas.bg {
 @media (max-width: 640px) {
   .t-best, .t-hint { display: none; }
   .t-play { min-width: 220px; }
+  .t-bar:has(.t-resume) { flex-direction: column; gap: 10px; }
+  .t-resume { flex-direction: row; gap: 10px; }
 }
 
 /* loja: itens com ícone, vender, rerolar */
@@ -1219,6 +1265,8 @@ body {
 #app.gfx-no-shake .shake, #app.gfx-no-shake .shake-hard { animation: none !important; }
 #app.gfx-no-foil .cf-gloss { animation: none !important; background: none !important; opacity: 0 !important; }
 #app.gfx-reduce-motion *, #app.gfx-reduce-motion *::before, #app.gfx-reduce-motion *::after { animation: none !important; }
+/* elementos que começam invisíveis e só aparecem pela animação: mostra o estado final */
+#app.gfx-reduce-motion .rrow { opacity: 1; }
 
 /* --- skins de verso (só background/box-shadow; NUNCA transform) --- */
 #app[data-skin='great'] .cs-back {

@@ -20,11 +20,14 @@ import { TitleScreen } from './ui/title';
 import { SPECIES } from './data/pokemon';
 import { loadProgress, recordResult } from './state/save';
 import { initSettings } from './ui/settings';
+import { clearRun, loadRun, saveRun } from './state/runSave';
 
 const root = document.querySelector<HTMLDivElement>('#app');
 if (!root) throw new Error('#app não encontrado');
 
-let run: RunState = startRun();
+// Run salva (se houver): oferecida como CONTINUAR na tela de título.
+const saved = loadRun();
+let run: RunState = saved ?? startRun();
 let gameKey = 0;
 let best = loadProgress().bestScore;
 let animating = false;
@@ -81,6 +84,7 @@ const ui = new GameUI(root, {
     sync();
   },
   onRestart(): void {
+    clearRun();
     run = startRun();
     gameKey++;
     animating = false;
@@ -89,6 +93,7 @@ const ui = new GameUI(root, {
 });
 
 function sync(): void {
+  saveRun(run);
   ui.update({
     state: run.game,
     preview: preview(run.game),
@@ -116,7 +121,13 @@ new TitleScreen(root, {
   species: SPECIES,
   bestScore: best,
   background: bg,
-  onPlay() {
+  resume: saved ? { gym: saved.gymIndex + 1, gymCount: GYMS.length, money: saved.money } : null,
+  onPlay(mode) {
+    if (mode === 'new' && saved) {
+      clearRun();
+      run = startRun();
+      gameKey++;
+    }
     root.classList.remove('title-on');
     sync();
   },

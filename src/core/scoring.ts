@@ -42,7 +42,9 @@ function applyEffect(
 /**
  * Calcula a pontuação final de uma jogada.
  * Fichas = fichas-base do combo + soma das fichas das cartas que pontuam.
- * Depois os itens (coringas) aplicam seus efeitos, em ordem.
+ * Depois os itens (coringas) aplicam seus efeitos: primeiro todos os bônus
+ * somados, depois os multiplicadores (×), para o resultado não depender da
+ * ordem em que os itens foram comprados.
  */
 export function scoreHand(hand: HandResult, items: TrainerItem[] = []): ScoreResult {
   const acc = {
@@ -50,10 +52,12 @@ export function scoreHand(hand: HandResult, items: TrainerItem[] = []): ScoreRes
     mult: hand.baseMult,
   };
 
-  for (const item of items) {
-    for (const effect of item.effects) {
-      applyEffect(effect, acc, hand);
-    }
+  const effects = items.flatMap((item) => item.effects);
+  for (const effect of effects) {
+    if (effect.kind !== 'multMult') applyEffect(effect, acc, hand);
+  }
+  for (const effect of effects) {
+    if (effect.kind === 'multMult') applyEffect(effect, acc, hand);
   }
 
   return {

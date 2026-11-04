@@ -3,6 +3,7 @@ import { mulberry32 } from '../core/deck';
 import { rollShop } from '../data/shop';
 import { buy, collectReward, leaveShop, reroll, sellItem, startRun } from './runState';
 import { ITEMS_BY_ID } from '../data/items';
+import { GYMS } from '../data/gyms';
 
 describe('startRun', () => {
   it('começa com dinheiro inicial, no primeiro ginásio', () => {
@@ -86,5 +87,20 @@ describe('sellItem', () => {
     const after = sellItem(run, 'choice-band');
     expect(after.money).toBe(2);
     expect(after.items).toHaveLength(0);
+  });
+});
+
+describe('fim da campanha', () => {
+  it('após o último ginásio, a recompensa leva ao título de Campeão (sem loja)', () => {
+    const base = startRun(mulberry32(3));
+    const run = {
+      ...base,
+      gymIndex: GYMS.length - 1,
+      phase: 'reward' as const,
+      lastReward: { base: 7, handsBonus: 1, interest: 0, total: 8 },
+    };
+    const after = collectReward(run);
+    expect(after.phase).toBe('runWon');
+    expect(after.money).toBe(4 + 8);
   });
 });

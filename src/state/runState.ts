@@ -92,6 +92,10 @@ export function discardSelected(run: RunState): RunState {
 /** Coleta a recompensa e abre a loja (reabastecida, reroll resetado). */
 export function collectReward(run: RunState): RunState {
   if (run.phase !== 'reward' || !run.lastReward) return run;
+  // último ginásio: não há fase seguinte para usar compras — vai direto ao título
+  if (run.gymIndex >= GYMS.length - 1) {
+    return { ...run, money: run.money + run.lastReward.total, phase: 'runWon' };
+  }
   return {
     ...run,
     money: run.money + run.lastReward.total,
